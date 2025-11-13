@@ -6,7 +6,7 @@ Esta carpeta contiene la configuración, documentación y scripts relacionados c
 
 ## 🚀 Tecnología
 
-El proyecto utiliza **PostgreSQL** como sistema de gestión de bases de datos relacional.
+El proyecto utiliza **PostgreSQL** como sistema de gestión de bases de datos relacional, integrado con **Spring Boot** y **Hibernate ORM**.
 
 ### ¿Por qué PostgreSQL?
 
@@ -14,6 +14,7 @@ El proyecto utiliza **PostgreSQL** como sistema de gestión de bases de datos re
 - **Escalabilidad**: Soporta grandes volúmenes de datos y concurrencia de usuarios, lo que se alinea con el futuro crecimiento de Unishop.
 - **Ecosistema**: Cuenta con un amplio soporte en la comunidad y es el estándar de facto para muchas aplicaciones modernas.
 - **Soporte de Tipos de Datos Avanzados**: Ofrece soporte para JSON, datos geoespaciales y más, lo que da flexibilidad para futuras funcionalidades.
+- **Integración con pgvector**: Soporte nativo para embeddings de IA y búsquedas vectoriales.
 
 ---
 
@@ -66,16 +67,17 @@ Para entornos de producción, se recomienda:
 ## 📊 Gestión de Datos
 
 ### Sincronización Automática
-En desarrollo, TypeORM maneja automáticamente la creación/modificación de tablas:
-```typescript
-synchronize: true  // Solo en desarrollo
+En desarrollo, Hibernate maneja automáticamente la creación/modificación de tablas:
+```properties
+# application.properties
+spring.jpa.hibernate.ddl-auto=update  # Solo en desarrollo
 ```
 
 ### Migraciones (Producción)
-Para producción, se deben crear migraciones manuales:
-```bash
-npm run migration:generate -- -n InitialSchema
-npm run migration:run
+Para producción, se deben crear migraciones manuales con Flyway:
+```properties
+spring.jpa.hibernate.ddl-auto=validate
+spring.flyway.enabled=true
 ```
 
 ---
@@ -102,10 +104,13 @@ CREATE INDEX idx_products_search ON products USING gin(to_tsvector('spanish', na
 ```
 
 ### Configuración de Pool
-```typescript
-poolSize: 10,              // Conexiones en pool
-connectionTimeoutMillis: 2000,
-query_timeout: 10000,
+Spring Boot usa HikariCP por defecto:
+```properties
+# application.properties
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.connection-timeout=2000
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=1200000
 ```
 
 ---
