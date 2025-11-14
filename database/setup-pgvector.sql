@@ -3,7 +3,9 @@
 -- =========================================
 
 -- Instalar pgvector (ejecutar como superusuario)
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Nota: pgvector no está instalado en esta imagen de desarrollo
+-- Para producción, instalar pgvector: https://github.com/pgvector/pgvector
+-- CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Verificar que pgvector esté instalado
 SELECT * FROM pg_extension WHERE extname = 'vector';
@@ -12,68 +14,73 @@ SELECT * FROM pg_extension WHERE extname = 'vector';
 -- Funciones de similitud para embeddings
 -- =========================================
 
+-- Nota: Funciones comentadas porque requieren pgvector
+-- Para desarrollo básico, estas funciones no son necesarias
+
 -- Función para calcular similitud coseno entre embeddings
-CREATE OR REPLACE FUNCTION cosine_similarity(a VECTOR, b VECTOR)
-RETURNS FLOAT
-LANGUAGE plpgsql
-IMMUTABLE STRICT
-AS $$
-BEGIN
-    RETURN 1 - (a <=> b);
-END;
-$$;
+-- CREATE OR REPLACE FUNCTION cosine_similarity(a VECTOR, b VECTOR)
+-- RETURNS FLOAT
+-- LANGUAGE plpgsql
+-- IMMUTABLE STRICT
+-- AS $$
+-- BEGIN
+--     RETURN 1 - (a <=> b);
+-- END;
+-- $$;
 
 -- Función para búsqueda semántica con umbral
-CREATE OR REPLACE FUNCTION semantic_search(
-    query_embedding VECTOR(1536),
-    similarity_threshold FLOAT DEFAULT 0.7,
-    max_results INTEGER DEFAULT 10
-)
-RETURNS TABLE(
-    id INTEGER,
-    topic VARCHAR(255),
-    content TEXT,
-    similarity FLOAT
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        kb.id,
-        kb.topic,
-        kb.content,
-        cosine_similarity(kb.embedding, query_embedding) as similarity
-    FROM knowledge_base kb
-    WHERE kb.is_active = true
-    AND cosine_similarity(kb.embedding, query_embedding) >= similarity_threshold
-    ORDER BY cosine_similarity(kb.embedding, query_embedding) DESC
-    LIMIT max_results;
-END;
-$$;
+-- CREATE OR REPLACE FUNCTION semantic_search(
+--     query_embedding VECTOR(1536),
+--     similarity_threshold FLOAT DEFAULT 0.7,
+--     max_results INTEGER DEFAULT 10
+-- )
+-- RETURNS TABLE(
+--     id INTEGER,
+--     topic VARCHAR(255),
+--     content TEXT,
+--     similarity FLOAT
+-- )
+-- LANGUAGE plpgsql
+-- AS $$
+-- BEGIN
+--     RETURN QUERY
+--     SELECT
+--         kb.id,
+--         kb.topic,
+--         kb.content,
+--         cosine_similarity(kb.embedding, query_embedding) as similarity
+--     FROM knowledge_base kb
+--     WHERE kb.is_active = true
+--     AND cosine_similarity(kb.embedding, query_embedding) >= similarity_threshold
+--     ORDER BY cosine_similarity(kb.embedding, query_embedding) DESC
+--     LIMIT max_results;
+-- END;
+-- $$;
 
 -- =========================================
 -- Generar embeddings de ejemplo (simulados)
 -- =========================================
 
+-- Nota: Funciones comentadas porque requieren pgvector
+
 -- Función para generar embeddings aleatorios (para testing)
 -- En producción, usarías OpenAI API o similar
-CREATE OR REPLACE FUNCTION generate_random_embedding(dimensions INTEGER DEFAULT 1536)
-RETURNS VECTOR
-LANGUAGE plpgsql
-VOLATILE
-AS $$
-DECLARE
-    embedding_values FLOAT[];
-    i INTEGER;
-BEGIN
-    FOR i IN 1..dimensions LOOP
-        embedding_values := array_append(embedding_values, random());
-    END LOOP;
-
-    RETURN embedding_values::VECTOR;
-END;
-$$;
+-- CREATE OR REPLACE FUNCTION generate_random_embedding(dimensions INTEGER DEFAULT 1536)
+-- RETURNS VECTOR
+-- LANGUAGE plpgsql
+-- VOLATILE
+-- AS $$
+-- DECLARE
+--     embedding_values FLOAT[];
+--     i INTEGER;
+-- BEGIN
+--     FOR i IN 1..dimensions LOOP
+--         embedding_values := array_append(embedding_values, random());
+--     END LOOP;
+--
+--     RETURN embedding_values::VECTOR;
+-- END;
+-- $$;
 
 -- =========================================
 -- Índices optimizados para embeddings
@@ -95,50 +102,52 @@ $$;
 -- Funciones de mantenimiento
 -- =========================================
 
+-- Nota: Funciones comentadas porque requieren pgvector
+
 -- Función para actualizar embeddings (placeholder)
 -- En producción, llamar a OpenAI API para generar embeddings reales
 
-CREATE OR REPLACE FUNCTION update_knowledge_base_embeddings()
-RETURNS INTEGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    updated_count INTEGER := 0;
-    kb_record RECORD;
-BEGIN
-    FOR kb_record IN SELECT id, content FROM knowledge_base WHERE embedding IS NULL OR embedding = ''::VECTOR LOOP
-        -- Aquí iría la llamada a OpenAI API
-        -- UPDATE knowledge_base SET embedding = openai_generate_embedding(content) WHERE id = kb_record.id;
-        UPDATE knowledge_base SET embedding = generate_random_embedding() WHERE id = kb_record.id;
-        updated_count := updated_count + 1;
-    END LOOP;
-
-    RETURN updated_count;
-END;
-$$;
+-- CREATE OR REPLACE FUNCTION update_knowledge_base_embeddings()
+-- RETURNS INTEGER
+-- LANGUAGE plpgsql
+-- AS $$
+-- DECLARE
+--     updated_count INTEGER := 0;
+--     kb_record RECORD;
+-- BEGIN
+--     FOR kb_record IN SELECT id, content FROM knowledge_base WHERE embedding IS NULL OR embedding = ''::VECTOR LOOP
+--         -- Aquí iría la llamada a OpenAI API
+--         -- UPDATE knowledge_base SET embedding = openai_generate_embedding(content) WHERE id = kb_record.id;
+--         UPDATE knowledge_base SET embedding = generate_random_embedding() WHERE id = kb_record.id;
+--         updated_count := updated_count + 1;
+--     END LOOP;
+--
+--     RETURN updated_count;
+-- END;
+-- $$;
 
 -- Función para verificar integridad de embeddings
-CREATE OR REPLACE FUNCTION validate_embeddings()
-RETURNS TABLE(
-    id INTEGER,
-    topic VARCHAR(255),
-    embedding_status TEXT
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        kb.id,
-        kb.topic,
-        CASE
-            WHEN kb.embedding IS NULL THEN 'NULL'
-            WHEN vector_dims(kb.embedding) != 1536 THEN 'INVALID_DIMENSIONS'
-            ELSE 'VALID'
-        END as embedding_status
-    FROM knowledge_base kb;
-END;
-$$;
+-- CREATE OR REPLACE FUNCTION validate_embeddings()
+-- RETURNS TABLE(
+--     id INTEGER,
+--     topic VARCHAR(255),
+--     embedding_status TEXT
+-- )
+-- LANGUAGE plpgsql
+-- AS $$
+-- BEGIN
+--     RETURN QUERY
+--     SELECT
+--         kb.id,
+--         kb.topic,
+--         CASE
+--             WHEN kb.embedding IS NULL THEN 'NULL'
+--             WHEN vector_dims(kb.embedding) != 1536 THEN 'INVALID_DIMENSIONS'
+--             ELSE 'VALID'
+--         END as embedding_status
+--     FROM knowledge_base kb;
+-- END;
+-- $$;
 
 -- =========================================
 -- Consultas de ejemplo para testing
