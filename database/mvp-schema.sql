@@ -37,10 +37,11 @@ CREATE TABLE products (
 
 -- Favorites table
 CREATE TABLE favorites (
+    id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, product_id)
+    UNIQUE(user_id, product_id)
 );
 
 -- Metrics table
@@ -195,3 +196,34 @@ INSERT INTO product_images (product_id, image_url, is_primary, order_index) VALU
 (15, 'https://picsum.photos/400/300?random=52', true, 0),
 (15, 'https://picsum.photos/400/300?random=53', false, 1),
 (15, 'https://picsum.photos/400/300?random=54', false, 2);
+
+-- Seed favorites for development (sample user favorites - randomly distributed)
+INSERT INTO favorites (user_id, product_id) VALUES
+-- Sofía Mendoza (user_id: 2) - Enfermería student
+(2, 4), -- Clean Code book
+(2, 5), -- Arduino kit
+(2, 8), -- Derecho Constitucional
+(2, 12), -- Turbina Dental
+
+-- Andrés Torres (user_id: 3) - Software Engineering student
+(3, 1), -- Estetoscopio
+(3, 7), -- Teoría del Estado
+(3, 9), -- Código Penal
+(3, 11), -- Patología Oral
+
+-- Valentina López (user_id: 4) - Law student
+(4, 5), -- Arduino kit
+(4, 13), -- Microscopio
+(4, 2), -- Fundamentos de Enfermería
+(4, 6), -- Calculadora Científica
+
+-- Miguel Aguilar (user_id: 5) - Dentistry student
+(5, 3), -- Kit de Venopunción
+(5, 4), -- Clean Code
+(5, 8), -- Derecho Constitucional
+(5, 14), -- Proyector Epson
+
+-- Admin UCC (user_id: 1) - Platform administrator
+(1, 6), -- Calculadora Científica
+(1, 10), -- Instrumental Odontológico
+(1, 15); -- Diccionario Oxford
