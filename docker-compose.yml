@@ -1,0 +1,22 @@
+# Standalone Database Service
+services:
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=unishop_db
+      - POSTGRES_USER=unishop_user
+      - POSTGRES_PASSWORD=unishop_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unishop_user -d unishop_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
